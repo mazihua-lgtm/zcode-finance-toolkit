@@ -1,0 +1,15 @@
+{
+  "name": "zcode-finance-toolkit",
+  "version": "1.0.0",
+  "description": "一站式金融投研工具箱：ETF持仓诊断、机会扫描、调仓算法、Prompt压缩、技能管理。专为中国A股投资者打造的ZCode插件。",
+  "author": {
+    "name": "mazihua-lgtm",
+    "url": "https://github.com/mazihua-lgtm"
+  },
+  "homepage": "https://github.com/mazihua-lgtm/zcode-finance-toolkit",
+  "repository": "https://github.com/mazihua-lgtm/zcode-finance-toolkit",
+  "license": "MIT",
+  "keywords": ["finance", "etf", "stock", "investment", "trading", "china", "a-share"],
+  "skills": "skills",
+  "hooks": "hooks"
+}
