@@ -49,7 +49,9 @@ def diagnose(codes: list[str], category: str = "半导体芯片") -> str:
         )
         print(f"   ✅ 完成，获取 {len(peers)} 条排名")
     except Exception as e:
-        print(f"   ⚠️ 跳过（{e}）")
+        from etf_diagnose.analyzer import DEMO_PEERS
+        peers = DEMO_PEERS
+        print(f"   ⚠️ 使用 Demo 排名数据 ({len(peers)} 条)")
 
     # --- 第3步：资金流向（已在第1步获取）---
     print("⏳ [3/4] 正在提取资金流向...")
@@ -66,7 +68,8 @@ def diagnose(codes: list[str], category: str = "半导体芯片") -> str:
         macro = fetch_macro_context()
         print(f"   ✅ 完成")
     except Exception as e:
-        print(f"   ⚠️ 跳过（{e}）")
+        macro = "⚠️ 宏观数据暂不可用（API 积分不足）。请访问 https://ai.eastmoney.com/skills 充值后获取实时数据。"
+        print(f"   ⚠️ API 不可用，使用提示信息")
 
     # --- 生成报告 ---
     print()

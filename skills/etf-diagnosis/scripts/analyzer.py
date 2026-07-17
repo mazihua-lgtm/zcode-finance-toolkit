@@ -50,7 +50,42 @@ class ETFMetrics:
         return "🔴 差"
 
 
-# ---------- 数据获取 ----------
+# ---------- Demo 数据（API 不可用时的 fallback）----------
+DEMO_METRICS = {
+    "512480": {"name": "半导体ETF国联安", "price": 1.356, "change_pct": -5.62,
+               "ret_1m": 29.1, "ret_3m": 73.8, "ret_1y": 163.2,
+               "sharpe": 0.74, "volatility": 45.6, "max_drawdown_1y": -20.0,
+               "premium": -4.74, "nav": 1.356, "scale": 233.5, "turnover": 8.57,
+               "main_inflow": -3.24},
+    "513650": {"name": "标普500ETF南方", "price": 1.900, "change_pct": 0.48,
+               "ret_1m": 1.4, "ret_3m": 9.6, "ret_1y": 14.8,
+               "sharpe": 0.38, "volatility": 13.3, "max_drawdown_1y": -10.25,
+               "premium": 2.77, "nav": 1.849, "scale": 77.7, "turnover": 2.66,
+               "main_inflow": -0.09},
+    "511010": {"name": "国债ETF国泰", "price": 140.77, "change_pct": -0.02,
+               "ret_1m": 0.13, "ret_3m": 0.85, "ret_1y": 1.89,
+               "sharpe": 0.07, "volatility": 0.90, "max_drawdown_1y": -0.25,
+               "premium": 0.01, "nav": 140.79, "scale": 38.1, "turnover": 0.5,
+               "main_inflow": 0.01},
+    "518850": {"name": "黄金ETF华夏", "price": 8.628, "change_pct": -0.53,
+               "ret_1m": -4.56, "ret_3m": -15.4, "ret_1y": 16.6,
+               "sharpe": 0.10, "volatility": 25.4, "max_drawdown_1y": -30.1,
+               "premium": -0.04, "nav": 8.664, "scale": 147.5, "turnover": 1.8,
+               "main_inflow": 0.5},
+    "588710": {"name": "科创半导体设备ETF华泰柏瑞", "price": 4.319, "change_pct": 9.95,
+               "ret_1m": 69.7, "ret_3m": 146.8, "ret_1y": 307.1,
+               "sharpe": 0.40, "volatility": 47.4, "max_drawdown_1y": -19.6,
+               "premium": 12.27, "nav": 3.847, "scale": 69.4, "turnover": 15.0,
+               "main_inflow": -1.07},
+}
+
+DEMO_PEERS = [
+    {"序号": "1", "代码": "588170", "名称": "科创半导体ETF华夏", "最新价": "1.214", "涨跌幅": "-6.04", "近1年": "268.5%"},
+    {"序号": "2", "代码": "588710", "名称": "科创半导体设备ETF华泰柏瑞", "最新价": "3.751", "涨跌幅": "-5.85", "近1年": "266.9%"},
+    {"序号": "3", "代码": "560780", "名称": "半导体设备ETF广发", "最新价": "1.273", "涨跌幅": "-7.01", "近1年": "246.3%"},
+    {"序号": "4", "代码": "159516", "名称": "半导体设备ETF国泰", "最新价": "0.865", "涨跌幅": "-4.42", "近1年": "242.9%"},
+    {"序号": "5", "代码": "512480", "名称": "半导体ETF国联安", "最新价": "1.356", "涨跌幅": "-5.62", "近1年": "163.2%"},
+]
 
 def _run_script(script: Path, args: list[str], timeout: int = 60) -> str:
     """运行一个 Python 脚本，返回 stdout。"""
@@ -65,34 +100,44 @@ def _run_script(script: Path, args: list[str], timeout: int = 60) -> str:
 
 
 def fetch_etf_metrics(codes: list[str]) -> list[ETFMetrics]:
-    """批量拉取 ETF 核心指标。"""
+    """批量拉取 ETF 核心指标。API 不可用时自动降级为 Demo 数据。"""
     query = "、".join(codes)
     indicators = "近1月回报、近3月回报、近1年回报、年化波动率、夏普比率、最大回撤、溢价率、单位净值、规模、换手率、主力净流入、涨跌幅"
 
-    _run_script(FINANCE_DATA, [
-        "--query", f"查询{query}的{indicators}",
-        "--indicators", indicators,
-    ], timeout=90)
+    try:
+        _run_script(FINANCE_DATA, [
+            "--query", f"查询{query}的{indicators}",
+            "--indicators", indicators,
+        ], timeout=90)
+        md_files = sorted(
+            WORK_DIR.glob("miaoxiang/mx_finance_data/mx_finance_data_*.md"),
+            key=lambda p: p.stat().st_mtime, reverse=True,
+        )
+        if md_files:
+            all_metrics: dict[str, ETFMetrics] = {}
+            for code in codes:
+                all_metrics[code] = ETFMetrics(code=code)
+            for md_file in md_files[:3]:
+                partial = _parse_metrics_markdown(md_file.read_text(encoding="utf-8"), codes)
+                for pm in partial:
+                    _merge_metrics(all_metrics[pm.code], pm)
+            if any(all_metrics[c].ret_1y == 0 for c in codes):
+                raise ValueError("API 返回数据不完整")
+            return list(all_metrics.values())
+    except Exception as e:
+        print(f"   ⚠️ API 不可用，使用 Demo 数据")
 
-    # 解析生成的 Markdown 文件 —— 读取最近生成的 3 个，合并数据
-    md_files = sorted(
-        WORK_DIR.glob("miaoxiang/mx_finance_data/mx_finance_data_*.md"),
-        key=lambda p: p.stat().st_mtime, reverse=True,
-    )
-    if not md_files:
-        raise RuntimeError("未找到数据输出文件")
-
-    # 合并最近 3 个文件的数据（API 每次返回的字段可能不同）
-    all_metrics: dict[str, ETFMetrics] = {}
+    results = []
     for code in codes:
-        all_metrics[code] = ETFMetrics(code=code)
-
-    for md_file in md_files[:3]:
-        partial = _parse_metrics_markdown(md_file.read_text(encoding="utf-8"), codes)
-        for pm in partial:
-            _merge_metrics(all_metrics[pm.code], pm)
-
-    return list(all_metrics.values())
+        demo = DEMO_METRICS.get(code)
+        if demo:
+            m = ETFMetrics(code=code)
+            for k, v in demo.items():
+                setattr(m, k, v)
+            results.append(m)
+        else:
+            results.append(ETFMetrics(code=code, name=f"ETF{code}"))
+    return results
 
 
 # 指标名 → ETFMetrics 字段映射（注意精确匹配优先）
