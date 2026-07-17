@@ -20,6 +20,8 @@ DATA_SOURCES = {
     "changeguard":  ZCODE / "changeguard" / "snapshot.json",
     "skills":       HOME / ".agents" / "skills",
     "config":       ZCODE / "cli" / "config.json",
+    "posterpro":    HOME / "Desktop" / "posterpro",
+    "publishpro":   HOME / "Desktop" / "publishpro",
 }
 
 
@@ -181,6 +183,14 @@ def dashboard() -> str:
     lines.append(f"- 📦 {sk['installed']} 个 ZCode 技能已安装")
     lines.append(f"- 🔌 {cfg['mcp_servers']} 个 MCP 服务器已配置")
     lines.append(f"- ⚡ Hooks：{'✅ 已启用' if cfg['hooks_enabled'] else '❌ 未启用'}")
+
+    # 内容工具
+    pp = DATA_SOURCES["posterpro"]
+    pb = DATA_SOURCES["publishpro"]
+    poster_count = len(list(pp.glob("*.png"))) if pp.exists() else 0
+    publish_count = len(list(pb.glob("*.txt"))) if pb.exists() else 0
+    if poster_count or publish_count:
+        lines.append(f"- 🎨 PosterPro：{poster_count} 张封面 | 📤 PublishPro：{publish_count} 个发布文件")
 
     lines.append("")
     lines.append("---")
