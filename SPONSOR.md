@@ -16,6 +16,17 @@ If you find it useful, sponsoring helps me:
 - 📚 **Write documentation** and tutorials
 - 🐛 **Triage issues** faster
 
+## 🌏 For sponsors in mainland China
+
+GitHub Sponsors **does not currently support mainland China** as a payout region. If you're in CN and want to support my work, please use one of these alternatives:
+
+- **微信 / 支付宝收款码**: 扫码 → 自定义金额 → 留言「sponsor」
+  - 主人收款码请联系 mazihua@users.noreply.github.com 获取
+- **爱发电 (afdian.com)**: 搜索 `mazihua-lgtm`（待开通）
+- **小报童 (xiaobot.net)**: 主人专栏上线后会挂链接
+
+International sponsors can still use **GitHub Sponsors** below.
+
 ## Sponsorship tiers
 
 ### 🥉 Bronze — $5/mo
@@ -58,9 +69,11 @@ Total transparency: I publish monthly expense breakdowns in `FUNDING.yml`.
 
 ## How to sponsor
 
-- **GitHub Sponsors**: [github.com/sponsors/mazihua-lgtm](https://github.com/sponsors/mazihua-lgtm) (preferred — 0% platform fees after matching)
+- 🇨🇳 **Mainland China**: 微信 / 支付宝收款码（联系主人获取）or 爱发电
+- 🌍 **International**: [github.com/sponsors/mazihua-lgtm](https://github.com/sponsors/mazihua-lgtm)
 - **Polar.sh**: Coming soon
 - **Open Collective**: Not currently accepting
+
 
 ## 📞 Contact
 
